@@ -1,44 +1,34 @@
-# Clean Print for Digital Garden
+# Clean Print
 
-Prints notes with black text on white paper regardless of the installed screen
-theme. A subtle printer icon sits beside Theme Toggle in the navigation footer.
-Works independently when Theme Toggle is disabled or absent.
+Theme-independent printing with study-sheet presets, page numbering and complete folded sections.
 
-The icon and Ctrl+P/Cmd+P open a compact settings dialog: paper, orientation,
-margins, text size, note name, page numbers, print date, images, expanded callouts,
-and link addresses. **Print / PDF** opens the browser's normal print dialog,
-where a printer or Save as PDF can be selected. Visitor options are remembered
-unless disabled in the garden plugin menu.
+![Clean Print in a Digital Garden](screenshot.png)
 
-Printing from the browser's own menu also applies the clean stylesheet, using
-the current/default print options. Sidebars, site controls, comments and media
-players are excluded. Printing does not change the visitor's screen theme.
-Canvas pages are excluded.
+## Installation
 
-## Browser support
+In Obsidian: Settings > Digital Garden > Plugins > Manage plugins > Browse & install. Until listed in the community gallery, use Install from GitHub with `koltensaccount/garden-plugin-clean-print`. A garden with current plugin support is required. Installation is file copying only; no setup scripts or dependencies need to run on the garden. Save settings and let the site rebuild.
 
-Custom page numbers use CSS page margin boxes, supported in modern Chrome and
-Edge (Chromium 131+). Other browsers may omit them. See the official documentation:
-https://developer.chrome.com/blog/print-margins
+## Usage
 
-Turn off the browser print dialog's built-in **Headers and footers** to avoid
-duplicate footers. Browser/printer settings can override CSS paper sizes or
-margins. The plugin does not control printer selection, copies, duplex or the
-browser's Save as PDF destination. Those stay in the native print dialog.
+The printer button or Ctrl+P/Cmd+P opens Standard, Compact Study Sheet, Large Text and custom print options. The native browser dialog chooses printer/PDF destination. Printed notes use black text on white paper. CSS page numbers require current Chromium (131+); other browsers may omit them. Disable native headers/footers to avoid duplicates. Details, lazy-loading and added URL attributes are restored after printing. Heading Folding exposes complete content through print-only CSS, preserving screen folds.
 
-## Install and develop
+## Settings
 
-Install the public GitHub repository URL in Digital Garden's **Install from
-GitHub** menu. Requires a garden template with garden plugin support. Publish
-or redeploy after changing plugin settings.
+| Key | Setting | Default |
+| --- | --- | --- |
+| `includeTitle` | Include note name by default | true |
+| `pageNumbers` | Include page numbers by default | true |
+| `rememberOptions` | Remember visitor print options | true |
+| `defaultPreset` | Default print preset | "Standard" |
 
-No build or dependency installation is needed:
+## Compatibility and Accessibility
 
-```sh
-npm run check
-npm run install:garden -- /path/to/my-digital-garden
-```
+Works alone and with the other reading plugins. Shared footer controls use the neutral `dg-nav-tools` convention, with a floating fallback when navigation is absent. Each plugin ships the helper it needs; none imports another plugin. Current Digital Garden uses full-document navigation. Initialization is idempotent. Native controls, accessible labels, focus outlines and appropriate ARIA states are retained. Print styles remain separate from screen preferences. Browser storage failures fall back safely.
 
-The local installer preserves existing settings. Bump both version fields for
-updates. Digital Garden prefers the latest GitHub release when one exists,
-otherwise the default branch.
+## Development
+
+Node 22+; `npm ci`, `npm run check`, `npm test`. Tests use Node's test runner and Playwright's driver with an installed Chrome/Edge browser (`CHROME_PATH` overrides discovery). CI uses Ubuntu's Chrome. Browser tests never invoke an OS print dialog. The plugin files are ready to copy directly into `src/plugins/clean-print/` in a current test garden. Real upstream integration and combination checks are reported in `VALIDATION.md`.
+
+## License
+
+MIT, copyright 2026 Kolten Bendickson.

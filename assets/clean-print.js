@@ -9,14 +9,21 @@
       includeTitle: config.includeTitle !== false, pageNumbers: config.pageNumbers !== false,
       includeDate: false, includeImages: true, expandCallouts: true, linkUrls: false
     };
+    var presets = {
+      Standard: { textSize: 11, margin: 18 },
+      "Compact Study Sheet": { textSize: 9, margin: 12 },
+      "Large Text": { textSize: 14, margin: 24 }
+    };
+    var defaultPreset = presets[config.defaultPreset] || presets.Standard;
+    Object.assign(defaults, defaultPreset);
     var booleanKeys = ["includeTitle", "pageNumbers", "includeDate", "includeImages", "expandCallouts", "linkUrls"];
     function normalize(raw) {
       var result = Object.assign({}, defaults);
       result.paper = raw.paper === "Letter" ? "Letter" : "A4";
       result.orientation = raw.orientation === "landscape" ? "landscape" : "portrait";
-      result.margin = [12, 18, 24].includes(Number(raw.margin)) ? Number(raw.margin) : 18;
+      result.margin = [12, 18, 24].includes(Number(raw.margin)) ? Number(raw.margin) : defaults.margin;
       var size = Number(raw.textSize);
-      result.textSize = Number.isFinite(size) ? Math.max(8, Math.min(18, size)) : 11;
+      result.textSize = Number.isFinite(size) ? Math.max(8, Math.min(18, size)) : defaults.textSize;
       booleanKeys.forEach(function (key) { if (typeof raw[key] === "boolean") result[key] = raw[key]; });
       return result;
     }
@@ -56,6 +63,7 @@
 
     var expanded = [];
     var imageLoading = new Map();
+    var originalUrls = new Map();
     function prepare() {
       applyOptions();
       if (options.includeImages) content.querySelectorAll('img[loading="lazy"]').forEach(function (image) {
@@ -72,7 +80,10 @@
         content.querySelectorAll("a[href]").forEach(function (link) {
           try {
             var url = new URL(link.href, location.href);
-            if (/^https?:$/.test(url.protocol) && url.origin !== location.origin) link.setAttribute("data-dg-print-url", url.href);
+            if (/^https?:$/.test(url.protocol) && url.origin !== location.origin) {
+              if (!originalUrls.has(link)) originalUrls.set(link, link.getAttribute("data-dg-print-url"));
+              link.setAttribute("data-dg-print-url", url.href);
+            }
           } catch (_) {}
         });
       }
@@ -82,6 +93,8 @@
       expanded = [];
       imageLoading.forEach(function (loading, image) { image.setAttribute("loading", loading); });
       imageLoading.clear();
+      originalUrls.forEach(function (value, link) { if (value === null) link.removeAttribute("data-dg-print-url"); else link.setAttribute("data-dg-print-url", value); });
+      originalUrls.clear();
     }
     window.addEventListener("beforeprint", prepare);
     window.addEventListener("afterprint", restore);
@@ -91,6 +104,7 @@
     dialog.setAttribute("aria-labelledby", "dg-print-dialog-title");
     dialog.innerHTML = '<form method="dialog">' +
       '<h2 id="dg-print-dialog-title">Print note</h2><p class="dg-print-note-name"></p>' +
+      '<label class="dg-print-preset">Preset<select name="preset"><option>Standard</option><option>Compact Study Sheet</option><option>Large Text</option><option>Custom</option></select></label>' +
       '<div class="dg-print-paper-fields">' +
       '<label>Paper<select name="paper"><option>A4</option><option>Letter</option></select></label>' +
       '<label>Layout<select name="orientation"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></label>' +
@@ -113,6 +127,7 @@
       ["paper", "orientation", "margin", "textSize"].forEach(function (key) { field(key).value = String(options[key]); });
       booleanKeys.forEach(function (key) { field(key).checked = options[key]; });
       form.querySelector("output").textContent = options.textSize + " pt";
+      field("preset").value = Object.keys(presets).find(function (key) { return presets[key].textSize === options.textSize && presets[key].margin === options.margin; }) || "Custom";
     }
     function readValues() {
       var values = {};
@@ -127,8 +142,17 @@
       showValues();
       if (!dialog.open) dialog.showModal();
     }
-    form.addEventListener("input", readValues);
-    form.addEventListener("change", readValues);
+    function onOptionsChange(event) {
+      if (event.target.name === "preset") {
+        var preset = presets[field("preset").value];
+        if (preset) { Object.assign(options, preset); showValues(); }
+      } else {
+        readValues();
+        field("preset").value = Object.keys(presets).find(function (key) { return presets[key].textSize === options.textSize && presets[key].margin === options.margin; }) || "Custom";
+      }
+    }
+    form.addEventListener("input", onOptionsChange);
+    form.addEventListener("change", onOptionsChange);
     dialog.querySelector(".dg-print-cancel").addEventListener("click", function () {
       dialog.close();
     });
@@ -153,7 +177,9 @@
         if (image.decode) resources.push(image.decode());
       });
       await Promise.race([Promise.allSettled(resources), new Promise(function (resolve) { setTimeout(resolve, 3000); })]);
-      window.requestAnimationFrame(function () { window.requestAnimationFrame(function () { window.print(); }); });
+      window.requestAnimationFrame(function () { window.requestAnimationFrame(function () {
+        try { window.print(); } catch (_) { restore(); }
+      }); });
     });
     document.addEventListener("keydown", function (event) {
       if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === "p") {
@@ -162,22 +188,7 @@
       }
     });
 
-    var nav = document.querySelector(".filetree-sidebar");
-    if (nav) {
-      var scroll = nav.querySelector(":scope > .dg-theme-nav-content");
-      if (!scroll) {
-        scroll = document.createElement("div");
-        scroll.className = "dg-theme-nav-content";
-        while (nav.firstChild) scroll.appendChild(nav.firstChild);
-        nav.appendChild(scroll);
-      }
-      var footer = nav.querySelector(":scope > .dg-theme-nav-footer");
-      if (!footer) {
-        footer = document.createElement("div");
-        footer.className = "dg-theme-nav-footer";
-        nav.appendChild(footer);
-      }
-      nav.classList.add("dg-theme-nav");
+    if (window.DGNavTools) {
       var button = document.createElement("button");
       button.type = "button";
       button.className = "dg-print-button";
@@ -185,7 +196,7 @@
       button.setAttribute("aria-label", "Print note");
       button.innerHTML = '<i data-lucide="printer"></i><span aria-hidden="true">&#128438;</span>';
       button.addEventListener("click", openDialog);
-      footer.appendChild(button);
+      window.DGNavTools.mount("dg-clean-print-control", button);
     }
     if (window.lucide) window.lucide.createIcons();
   }

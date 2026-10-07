@@ -2,14 +2,48 @@
   "id": "clean-print",
   "name": "Clean Print",
   "version": "1.0.0",
-  "description": "Theme-independent printing with a subtle sidebar button and simple PDF options.",
+  "description": "Theme-independent printing with study-sheet presets, page numbering and complete folded sections.",
   "author": "Kolten Bendickson",
-  "slots": { "common.footer": "templates/config.njk" },
-  "styles": ["styles/clean-print.css"],
-  "scripts": ["assets/clean-print.js"],
+  "slots": {
+    "common.footer": "templates/config.njk"
+  },
+  "styles": [
+    "styles/nav-tools.css",
+    "styles/clean-print.css"
+  ],
+  "scripts": [
+    "assets/nav-tools.js",
+    "assets/clean-print.js"
+  ],
   "settings": [
-    { "key": "includeTitle", "name": "Include note name by default", "type": "boolean", "default": true },
-    { "key": "pageNumbers", "name": "Include page numbers by default", "type": "boolean", "default": true },
-    { "key": "rememberOptions", "name": "Remember visitor print options", "type": "boolean", "default": true }
+    {
+      "key": "includeTitle",
+      "name": "Include note name by default",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "key": "pageNumbers",
+      "name": "Include page numbers by default",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "key": "rememberOptions",
+      "name": "Remember visitor print options",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "key": "defaultPreset",
+      "name": "Default print preset",
+      "type": "select",
+      "options": [
+        "Standard",
+        "Compact Study Sheet",
+        "Large Text"
+      ],
+      "default": "Standard"
+    }
   ]
 }

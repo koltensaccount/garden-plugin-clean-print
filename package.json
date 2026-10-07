@@ -3,8 +3,20 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "check": "node --check assets/clean-print.js",
-    "install:garden": "node scripts/install.cjs"
+    "check": "node scripts/check.cjs",
+    "install:garden": "node scripts/install.cjs",
+    "test": "node --test tests/*.test.cjs"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "playwright-core": "1.63.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/koltensaccount/garden-plugin-clean-print.git"
+  },
+  "homepage": "https://github.com/koltensaccount/garden-plugin-clean-print#readme"
 }
