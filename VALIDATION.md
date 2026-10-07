@@ -1,6 +1,12 @@
 # Validation
 
-Validated on 2026-10-07, Node 22.23.3 and Microsoft Edge 153 (Playwright).
+Version 1.0.1 validated on 2026-10-07, Node 22.23.3 and Google Chrome 154 (Playwright).
+
+## Divider margin regression
+
+`npm run check` and `npm test` pass (1 browser test, none skipped). All three presets are checked for their margin and text-size settings, containment of viewport-wide/negatively offset theme horizontal rules, removal of print-only heading decorations, and unchanged screen decorations. Existing print preparation/restoration and responsive checks remain passing.
+
+An isolated Clean Print installation built successfully on actual upstream Digital Garden commit `80a33ffa6cb198ecf733e5944b4a60510970e3b0`, with no core source edits. Chrome generated PDFs for Compact, Standard and Large Text. PyMuPDF measured divider endpoints at their respective 12, 18 and 24 mm page margins (within 2 pt browser rounding tolerance); rendered first pages were reviewed visually. No browser page errors occurred. The native OS print dialog and physical printers were not exercised. Other-plugin combinations were not rerun for this patch; historical evidence follows.
 
 ## Standalone
 

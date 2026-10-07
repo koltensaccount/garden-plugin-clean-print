@@ -114,9 +114,31 @@
   html body.dg-print-clean main.content h5,
   html body.dg-print-clean main.content h6 { font-size: 11pt !important; }
   html body.dg-print-clean main.content :is(h1,h2,h3,h4,h5,h6) {
+    position: static !important;
+    width: auto !important;
+    min-width: 0 !important;
+    margin-inline: 0 !important;
+    transform: none !important;
     break-after: avoid;
     break-inside: avoid;
     margin: 16pt 0 8pt;
+  }
+  /* Screen themes can draw viewport-wide rules outside the printed note. */
+  html body.dg-print-clean main.content :is(h1,h2,h3,h4,h5,h6,hr)::before,
+  html body.dg-print-clean main.content :is(h1,h2,h3,h4,h5,h6,hr)::after {
+    content: none !important;
+    display: none !important;
+  }
+  html body.dg-print-clean main.content hr {
+    position: static !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 10pt 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    border: 0 !important;
+    border-top: 1px solid #bbb !important;
   }
   html body.dg-print-clean main.content p,
   html body.dg-print-clean main.content li { orphans: 3; widows: 3; }

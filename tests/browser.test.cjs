@@ -100,6 +100,29 @@ test("browser feature, keyboard, repeat initialization and responsive safety", {
       await page.locator('[name="size"]').fill("22");
       assert.equal(await page.locator("main.content").evaluate(el => getComputedStyle(el).fontSize), "22px");
     } else if (id === "clean-print") {
+      await page.addStyleTag({ content: 'main.content hr { position: relative; width: 100vw; min-width: 100vw; margin-left: -284px; transform: translateX(-30px); } main.content h2::after { content: ""; position: absolute; left: -50vw; width: 100vw; border-bottom: 1px solid black; }' });
+      await page.locator('#first').evaluate(heading => heading.insertAdjacentHTML('afterend', '<hr id="print-divider">'));
+      for (const [preset, margin, textSize] of [['Compact Study Sheet', 12, 9], ['Standard', 18, 11], ['Large Text', 24, 14]]) {
+        await page.keyboard.press('Control+p');
+        await page.locator('[name="preset"]').selectOption(preset);
+        assert.equal(await page.locator('[name="margin"]').inputValue(), String(margin));
+        await page.locator('.dg-print-submit').click();
+        await page.waitForFunction(count => window.printInvocations === count, (margin === 12 ? 1 : margin === 18 ? 2 : 3));
+        assert.match(await page.locator('#dg-print-page-style').textContent(), new RegExp('margin: ' + margin + 'mm'));
+        await page.emulateMedia({ media: 'print' });
+        const geometry = await page.evaluate(() => {
+          const main = document.querySelector('main.content').getBoundingClientRect();
+          const rule = document.querySelector('#print-divider').getBoundingClientRect();
+          return { left: rule.left - main.left, right: rule.right - main.right, pseudo: getComputedStyle(document.querySelector('#first'), '::after').content, font: getComputedStyle(document.querySelector('main.content')).fontSize };
+        });
+        assert(Math.abs(geometry.left) < 1 && Math.abs(geometry.right) < 1, preset + ': divider stays inside note');
+        assert.equal(geometry.pseudo, 'none');
+        assert(Math.abs(parseFloat(geometry.font) - textSize * 96 / 72) < 0.1);
+        await page.emulateMedia({ media: 'screen' });
+        assert.notEqual(await page.locator('#first').evaluate(el => getComputedStyle(el, '::after').content), 'none', 'Screen decoration is preserved');
+        await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+      }
+      await page.evaluate(() => { window.printInvocations = 0; });
       await page.keyboard.press("Control+p");
       await page.locator('[name="preset"]').selectOption("Large Text");
       assert.equal(await page.locator('[name="textSize"]').inputValue(), "14");

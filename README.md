@@ -14,6 +14,8 @@ The printer button or Ctrl+P/Cmd+P opens Standard, Compact Study Sheet, Large Te
 
 ## Settings
 
+Compact Study Sheet uses 9 pt text and 12 mm margins (Standard: 11 pt / 18 mm; Large Text: 14 pt / 24 mm). Compact means more content fits on each page, not a narrower text column. Printed horizontal rules stay within the note's printable area; theme-only heading/rule pseudo-element decorations are omitted. Screen styling is unchanged. Keep the native print dialog's scale at 100% and avoid overriding the selected paper size or margins.
+
 | Key | Setting | Default |
 | --- | --- | --- |
 | `includeTitle` | Include note name by default | true |
