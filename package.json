@@ -1,0 +1,10 @@
+{
+  "name": "garden-plugin-clean-print",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "check": "node --check assets/clean-print.js",
+    "install:garden": "node scripts/install.cjs"
+  },
+  "engines": { "node": ">=22" }
+}
