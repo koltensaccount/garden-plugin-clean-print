@@ -1,6 +1,6 @@
 # Clean Print
 
-Theme-independent printing with study-sheet presets, page numbering and complete folded sections.
+Clean printing with live layout preview, study-sheet presets, optional theme styling and page numbering.
 
 ![Clean Print in a Digital Garden](screenshot.png)
 
@@ -14,7 +14,11 @@ The printer button or Ctrl+P/Cmd+P opens Standard, Compact Study Sheet, Large Te
 
 ## Settings
 
-Compact Study Sheet uses 9 pt text and 12 mm margins (Standard: 11 pt / 18 mm; Large Text: 14 pt / 24 mm). Compact means more content fits on each page, not a narrower text column. Printed horizontal rules stay within the note's printable area; theme-only heading/rule pseudo-element decorations are omitted. Screen styling is unchanged. Keep the native print dialog's scale at 100% and avoid overriding the selected paper size or margins.
+Compact Study Sheet uses 10 pt text, tighter spacing and 12 mm margins (Standard: 11 pt / 18 mm; Large Text: 14 pt / 24 mm). Compact means more content fits on each page, not a narrower text column. Horizontal margins inset the content itself, including heading dividers and horizontal rules; vertical margins use the print page settings. Theme-only heading/rule pseudo-element decorations are omitted. Screen styling is unchanged. Keep the native print dialog's scale at 100%, margins at Default and the selected paper size unchanged; browser overrides may add extra space.
+
+The live preview updates the continuous note layout as settings change. It is not an exact pagination or page-number preview: the native print dialog remains the final check. On narrow screens it appears below the controls. Embedded PDF viewers and other interactive embeds are not printed.
+
+Advanced options independently preserve theme text colors, fonts and backgrounds, alongside image, callout, link-address and heading-divider options. Defaults remain dark text on white paper. Theme text colors with insufficient contrast against the selected solid background fall back to readable ink; complex background images still need visual checking. Background printing may also need enabling in the browser dialog. Custom webfonts may fall back in the preview, while actual printing uses the page's loaded fonts. Options are remembered in the visitor's browser when enabled.
 
 | Key | Setting | Default |
 | --- | --- | --- |

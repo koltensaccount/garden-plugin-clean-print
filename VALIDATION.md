@@ -1,8 +1,12 @@
 # Validation
 
-Version 1.0.1 validated on 2026-10-07, Node 22.23.3 and Google Chrome 154 (Playwright).
+Version 1.1.0 validated on 2026-10-09, Node 22.23.3 and installed Google Chrome (Playwright).
 
-## Divider margin regression
+## Live preview and content margins
+
+`npm run check` and `npm test` pass (1 focused browser test, none skipped). Tests check all preset sizes and computed content padding, horizontal-rule containment inside each margin, live preview margin changes, separate theme font/color/background options, cancellation/restoration, print preparation, repeated initialization and responsive safety. Desktop (1100 px) and mobile (390 px) dialog screenshots were inspected without overlapping controls or horizontal overflow. No OS print dialog or physical printer was exercised for this update. The preview shows continuous layout, not final pagination. Firefox/WebKit and other-plugin combinations were not rerun; historical evidence below is not validation of this release.
+
+## Previous 1.0.1 divider margin regression
 
 `npm run check` and `npm test` pass (1 browser test, none skipped). All three presets are checked for their margin and text-size settings, containment of viewport-wide/negatively offset theme horizontal rules, removal of print-only heading decorations, and unchanged screen decorations. Existing print preparation/restoration and responsive checks remain passing.
 

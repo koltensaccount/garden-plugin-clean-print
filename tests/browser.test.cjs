@@ -102,7 +102,7 @@ test("browser feature, keyboard, repeat initialization and responsive safety", {
     } else if (id === "clean-print") {
       await page.addStyleTag({ content: 'main.content hr { position: relative; width: 100vw; min-width: 100vw; margin-left: -284px; transform: translateX(-30px); } main.content h2::after { content: ""; position: absolute; left: -50vw; width: 100vw; border-bottom: 1px solid black; }' });
       await page.locator('#first').evaluate(heading => heading.insertAdjacentHTML('afterend', '<hr id="print-divider">'));
-      for (const [preset, margin, textSize] of [['Compact Study Sheet', 12, 9], ['Standard', 18, 11], ['Large Text', 24, 14]]) {
+      for (const [preset, margin, textSize] of [['Compact Study Sheet', 12, 10], ['Standard', 18, 11], ['Large Text', 24, 14]]) {
         await page.keyboard.press('Control+p');
         await page.locator('[name="preset"]').selectOption(preset);
         assert.equal(await page.locator('[name="margin"]').inputValue(), String(margin));
@@ -113,9 +113,11 @@ test("browser feature, keyboard, repeat initialization and responsive safety", {
         const geometry = await page.evaluate(() => {
           const main = document.querySelector('main.content').getBoundingClientRect();
           const rule = document.querySelector('#print-divider').getBoundingClientRect();
-          return { left: rule.left - main.left, right: rule.right - main.right, pseudo: getComputedStyle(document.querySelector('#first'), '::after').content, font: getComputedStyle(document.querySelector('main.content')).fontSize };
+          const style=getComputedStyle(document.querySelector('main.content'));
+          return { left: rule.left - main.left, right: rule.right - main.right, padding:parseFloat(style.paddingLeft), pseudo: getComputedStyle(document.querySelector('#first'), '::after').content, font:style.fontSize };
         });
-        assert(Math.abs(geometry.left) < 1 && Math.abs(geometry.right) < 1, preset + ': divider stays inside note');
+        assert(Math.abs(geometry.padding-margin*96/25.4)<1,'Selected margin is applied to content');
+        assert(Math.abs(geometry.left-geometry.padding) < 1 && Math.abs(geometry.right+geometry.padding) < 1, preset + ': divider stays inside selected margins');
         assert.equal(geometry.pseudo, 'none');
         assert(Math.abs(parseFloat(geometry.font) - textSize * 96 / 72) < 0.1);
         await page.emulateMedia({ media: 'screen' });
@@ -123,16 +125,33 @@ test("browser feature, keyboard, repeat initialization and responsive safety", {
         await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
       }
       await page.evaluate(() => { window.printInvocations = 0; });
+      await page.addStyleTag({content:'#first-body{font-family:Georgia;color:#a33555;background-color:#ece4ff}'});
+      await page.keyboard.press('Control+p');
+      await page.locator('[name="preset"]').selectOption('Compact Study Sheet');
+      const preview=page.locator('.dg-print-preview iframe');
+      async function previewValues(){return preview.evaluate(frame=>{
+        const d=frame.contentDocument,m=d.querySelector('main.content'),hr=d.querySelector('#print-divider'),p=d.querySelector('#first-body');
+        const main=m.getBoundingClientRect(),rule=hr.getBoundingClientRect(),style=frame.contentWindow.getComputedStyle(m),paragraph=frame.contentWindow.getComputedStyle(p);
+        return {padding:parseFloat(style.paddingLeft),left:rule.left-main.left,font:paragraph.fontFamily,color:paragraph.color,background:paragraph.backgroundColor,fontSize:style.fontSize};
+      });}
+      let live=await previewValues();assert(Math.abs(live.padding-12*96/25.4)<1);assert(Math.abs(live.left-live.padding)<1);
+      await page.locator('[name="margin"]').selectOption('24');live=await previewValues();assert(Math.abs(live.padding-24*96/25.4)<1);
+      await page.locator('.dg-print-advanced summary').click();
+      await page.locator('[name="themeFont"]').check();await page.locator('[name="themeColors"]').check();
+      live=await previewValues();assert(live.font.includes('Georgia'));assert.equal(live.color,'rgb(163, 53, 85)');
+      await page.locator('[name="themeBackground"]').check();live=await previewValues();assert.equal(live.background,'rgb(236, 228, 255)');
+      await page.locator('.dg-print-cancel').click();
       await page.keyboard.press("Control+p");
       await page.locator('[name="preset"]').selectOption("Large Text");
       assert.equal(await page.locator('[name="textSize"]').inputValue(), "14");
+      if(!await page.locator('.dg-print-advanced').evaluate(el=>el.open))await page.locator('.dg-print-advanced summary').click();
       await page.locator('[name="linkUrls"]').check();
       await page.locator(".dg-print-submit").click();
       await page.waitForFunction(() => window.printInvocations === 1);
-      assert.equal(await page.locator('details').evaluate(el => el.open), true);
+      assert.equal(await page.locator('main.content details').evaluate(el => el.open), true);
       assert.equal(await page.locator("a[data-dg-print-url]").count(), 1);
       await page.evaluate(() => window.dispatchEvent(new Event("afterprint")));
-      assert.equal(await page.locator('details').evaluate(el => el.open), false);
+      assert.equal(await page.locator('main.content details').evaluate(el => el.open), false);
       assert.equal(await page.locator("a[data-dg-print-url]").count(), 0);
       assert.equal(await page.locator("img").getAttribute("loading"), "lazy");
     } else if (id === "note-lock") {
@@ -148,6 +167,12 @@ test("browser feature, keyboard, repeat initialization and responsive safety", {
     if (id === "heading-folding") assert.equal(await page.locator("#first > .dg-fold-button").count(), 1);
     for (const width of [1100, 390]) {
       await page.setViewportSize({ width, height: 844 }); await page.waitForTimeout(80);
+      if(id==='clean-print'){
+        await page.keyboard.press('Control+p');
+        assert.equal(await page.locator('.dg-print-dialog').evaluate(el=>el.scrollWidth>el.clientWidth+1),false,'Print controls and preview fit mobile');
+        if(process.env.DG_PRINT_CAPTURE)await page.screenshot({path:process.env.DG_PRINT_CAPTURE+'-'+width+'.png'});
+        await page.locator('.dg-print-cancel').click();
+      }
       if (id === "resizable-panes") assert.equal(await page.locator(".dg-rp-right-splitter").count(), 0);
       if (id === "toc-settings") assert.equal(await page.locator(".toc-container").evaluate(el => getComputedStyle(el).maxHeight), "none");
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, "Horizontal overflow at " + width);

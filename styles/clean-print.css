@@ -19,7 +19,7 @@
 .dg-print-button .lucide + span { display: none; }
 .dg-print-button:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: 2px; }
 .dg-print-dialog {
-  width: min(420px, calc(100vw - 32px));
+  width: min(1040px, calc(100vw - 32px));
   max-height: calc(100dvh - 40px);
   box-sizing: border-box;
   padding: 22px;
@@ -30,6 +30,17 @@
   overflow: auto;
 }
 .dg-print-dialog::backdrop { background: rgb(0 0 0 / 45%); }
+.dg-print-layout { display: grid; grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); gap: 28px; align-items: start; }
+.dg-print-layout > form { min-width: 0; }
+.dg-print-advanced { margin-top: 20px; border-top: 1px solid var(--background-modifier-border); padding-top: 14px; }
+.dg-print-advanced summary { cursor: pointer; font-size: 13px; }
+.dg-print-advanced .dg-print-checks { margin-top: 16px; }
+.dg-print-preview h3 { margin: 0 0 12px !important; font-size: 14px !important; }
+.dg-print-preview { min-width: 0; }
+.dg-print-preview-viewport { height: min(650px, 72vh); overflow: auto; padding: 16px; box-sizing: border-box; background: #e8ecef; border: 1px solid #c4ccd3; border-radius: 4px; }
+.dg-print-preview-scaled { position: relative; margin: 0 auto; background: white; overflow: hidden; }
+.dg-print-preview iframe { position: absolute; inset: 0 auto auto 0; border: 0; max-width: none; transform-origin: 0 0; pointer-events: none; background: white; }
+@media (max-width: 780px) { .dg-print-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; } .dg-print-preview-viewport { height: 360px; } }
 .dg-print-dialog h2 { margin: 0 0 4px !important; font-size: 20px !important; }
 .dg-print-note-name { margin: 0 0 20px; color: var(--text-muted); font-size: 13px; overflow-wrap: anywhere; }
 .dg-print-dialog, .dg-print-dialog :is(button, input, select) { font-family: inherit; }
@@ -55,7 +66,7 @@
   html body.dg-print-clean.dg-rp-width-selected main.content:not(.canvas-page) { max-width: none !important; }
   html:has(body.dg-print-clean),
   html body.dg-print-clean {
-    background: #fff !important;
+    background: var(--dg-print-paper, #fff) !important;
     color: #111 !important;
     color-scheme: light !important;
     height: auto !important;
@@ -74,7 +85,10 @@
     height: auto !important;
     overflow: visible !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 0 var(--dg-print-margin, 18mm) !important;
+    background-color: var(--dg-print-paper, #fff) !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
     font-family: Arial, Helvetica, sans-serif !important;
     font-size: var(--dg-print-text-size, 11pt) !important;
     line-height: 1.45 !important;
@@ -87,14 +101,19 @@
   html body.dg-print-clean main.content,
   html body.dg-print-clean main.content * {
     box-sizing: border-box !important;
-    color: #111 !important;
+    color: var(--dg-print-element-ink, var(--dg-print-ink, #111)) !important;
     background-color: transparent !important;
     background-image: none !important;
     box-shadow: none !important;
     text-shadow: none !important;
     overflow-wrap: anywhere;
-    max-width: 100%;
+    max-width: 100% !important;
   }
+  html body.dg-print-clean.dg-print-theme-colors main.content,
+  html body.dg-print-clean.dg-print-theme-colors main.content * { color: var(--dg-print-theme-color, var(--dg-print-ink, #111)) !important; }
+  html body.dg-print-clean.dg-print-theme-font main.content,
+  html body.dg-print-clean.dg-print-theme-font main.content * { font-family: var(--dg-print-theme-font, Arial) !important; }
+  html body.dg-print-clean.dg-print-theme-background main.content * { background-color: var(--dg-print-theme-background, transparent) !important; background-image: var(--dg-print-theme-image, none) !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   html body.dg-print-clean main.content > header,
   html body.dg-print-clean main.content .giscus,
   html body.dg-print-clean main.content iframe,
@@ -102,17 +121,17 @@
   html body.dg-print-clean main.content audio,
   html body.dg-print-clean main.content button { display: none !important; }
   html body.dg-print-clean .dg-print-heading { display: block; margin-bottom: 18pt; }
-  html body.dg-print-clean .dg-print-heading h1 { font-size: 22pt !important; margin: 0 0 8pt !important; }
+  html body.dg-print-clean .dg-print-heading h1 { font-size: 1.8em !important; margin: 0 0 8pt !important; }
   html body.dg-print-clean.dg-print-no-title .dg-print-heading h1 { display: none !important; }
   html body.dg-print-clean .dg-print-date { display: none; margin: 0; font-size: 9pt; }
   html body.dg-print-clean.dg-print-with-date .dg-print-date { display: block; }
   html body.dg-print-clean.dg-print-no-title:not(.dg-print-with-date) .dg-print-heading { display: none; }
-  html body.dg-print-clean main.content h1 { font-size: 20pt !important; }
-  html body.dg-print-clean main.content h2 { font-size: 16pt !important; }
-  html body.dg-print-clean main.content h3 { font-size: 13pt !important; }
+  html body.dg-print-clean main.content h1 { font-size: 1.7em !important; }
+  html body.dg-print-clean main.content h2 { font-size: 1.4em !important; border-bottom: 1px solid #bbb !important; padding-bottom: 3pt !important; }
+  html body.dg-print-clean main.content h3 { font-size: 1.2em !important; }
   html body.dg-print-clean main.content h4,
   html body.dg-print-clean main.content h5,
-  html body.dg-print-clean main.content h6 { font-size: 11pt !important; }
+  html body.dg-print-clean main.content h6 { font-size: 1em !important; }
   html body.dg-print-clean main.content :is(h1,h2,h3,h4,h5,h6) {
     position: static !important;
     width: auto !important;
@@ -122,7 +141,12 @@
     break-after: avoid;
     break-inside: avoid;
     margin: 16pt 0 8pt;
+    border-color: currentColor !important;
   }
+  html body.dg-print-clean.dg-print-compact main.content { line-height: 1.3 !important; }
+  html body.dg-print-clean.dg-print-compact main.content :is(h1,h2,h3,h4,h5,h6) { margin-block: 9pt 4pt !important; }
+  html body.dg-print-clean.dg-print-compact main.content :is(p,ul,ol) { margin-block: 5pt !important; }
+  html body.dg-print-clean.dg-print-no-rules main.content :is(h1,h2,h3,h4,h5,h6) { border: 0 !important; }
   /* Screen themes can draw viewport-wide rules outside the printed note. */
   html body.dg-print-clean main.content :is(h1,h2,h3,h4,h5,h6,hr)::before,
   html body.dg-print-clean main.content :is(h1,h2,h3,h4,h5,h6,hr)::after {
@@ -147,10 +171,10 @@
     overflow: visible !important;
     border: 1px solid #ccc !important;
     padding: 8pt !important;
-    font-size: 9pt !important;
+    font-size: 0.85em !important;
   }
   html body.dg-print-clean main.content code { white-space: pre-wrap !important; overflow-wrap: anywhere !important; }
-  html body.dg-print-clean main.content table { width: 100% !important; table-layout: fixed; border-collapse: collapse; font-size: 9pt; }
+  html body.dg-print-clean main.content table { width: 100% !important; table-layout: fixed; border-collapse: collapse; font-size: 0.9em; }
   html body.dg-print-clean main.content thead { display: table-header-group; }
   html body.dg-print-clean main.content tr { break-inside: avoid; }
   html body.dg-print-clean main.content :is(th,td) { border: 1px solid #bbb !important; padding: 5pt !important; overflow-wrap: anywhere !important; }
