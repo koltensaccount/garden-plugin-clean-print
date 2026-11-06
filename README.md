@@ -38,3 +38,9 @@ Node 22+; `npm ci`, `npm run check`, `npm test`. Tests use Node's test runner an
 ## License
 
 MIT, copyright 2026 Kolten Bendickson.
+
+## Themed callouts and notebook images
+
+Print preview now includes the installed theme's styles under simulated print media. Callout borders, labels and typography are preserved instead of being replaced by generic boxes. Video callouts become compact source citations with their URL, regardless of the general external-URL option.
+
+Known notebook clip/page images are inspected locally to identify white versus dark ink. Print styling adapts them to the paper color; image files and ordinary photographs are unchanged. Both the preview and native PDF output use the same treatment.

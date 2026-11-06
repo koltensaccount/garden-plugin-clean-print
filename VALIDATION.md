@@ -33,3 +33,5 @@ Eight separate stress scenarios passed: left-only, right-only, no panes, both co
 ## Limits
 
 Chromium/Edge was exercised, not Firefox/WebKit or physical touch hardware. Native browser `dialog`, modern layout CSS and optional relative OKLCH are used; unsupported relative colors fall back to the theme accent. Accent contrast is checked against the primary background, not every possible third-party theme surface. Current core uses full-document navigation; disabling/uninstalling is supported through rebuild and page reload, not a hot-unload API. Third-party navigation replacements may require integration checks.
+
+1.2.0: Test the real Folio garden preview and native PDF: definition/theorem/solution styles, video source citations (no icons or frame), white and black notebook PNG ink, ordinary photos, and light/dark starting themes. Preserve original source notes and asset bytes. Cross-origin image pixel access can be unavailable; explicit FineNotes theme markers and notebook-export conventions provide the fallback.

@@ -96,18 +96,23 @@
     --text-muted: #444 !important;
     --text-accent: #111 !important;
     --background-primary: #fff !important;
+    --background-primary-alt: #f8f9fa !important;
+    --background-secondary-alt: #f4f5f6 !important;
     --background-secondary: #fff !important;
   }
   html body.dg-print-clean main.content,
   html body.dg-print-clean main.content * {
     box-sizing: border-box !important;
     color: var(--dg-print-element-ink, var(--dg-print-ink, #111)) !important;
-    background-color: transparent !important;
-    background-image: none !important;
+
     box-shadow: none !important;
     text-shadow: none !important;
     overflow-wrap: anywhere;
     max-width: 100% !important;
+  }
+  html body.dg-print-clean main.content *:not(.callout) {
+    background-color: transparent !important;
+    background-image: none !important;
   }
   html body.dg-print-clean.dg-print-theme-colors main.content,
   html body.dg-print-clean.dg-print-theme-colors main.content * { color: var(--dg-print-theme-color, var(--dg-print-ink, #111)) !important; }
@@ -180,7 +185,34 @@
   html body.dg-print-clean main.content :is(th,td) { border: 1px solid #bbb !important; padding: 5pt !important; overflow-wrap: anywhere !important; }
   html body.dg-print-clean main.content :is(img,svg) { max-width: 100% !important; height: auto; break-inside: avoid; }
   html body.dg-print-clean.dg-print-no-images main.content img { display: none !important; }
-  html body.dg-print-clean main.content .callout { border: 1px solid #ccc !important; padding: 8pt !important; }
+  /* Keep the theme's callout borders, typography, spacing and reference labels. */
+  html body.dg-print-clean main.content .callout { break-inside: auto; }
+  html body.dg-print-clean main.content .callout > .callout-title { break-after: avoid; }
+  html body.dg-print-clean main.content img[data-dg-print-invert="true"] { filter: invert(1) hue-rotate(180deg) !important; }
+  html body.dg-print-clean main.content img[data-dg-print-invert="false"] { filter: none !important; }
+  /* Video disclosures print as compact citations, including the usable URL. */
+  html body.dg-print-clean main.content .callout:is([data-callout="video"], [data-callout="video-source"]) {
+    background: transparent !important; border: 0 !important; box-shadow: none !important;
+    border-radius: 0 !important; padding: 0 !important; margin: 0.8em 0 !important;
+    max-width: none !important;
+  }
+  html body.dg-print-clean main.content .callout:is([data-callout="video"], [data-callout="video-source"]) :is(.callout-icon,.callout-fold,.callout-content) { display: none !important; }
+  html body.dg-print-clean.dg-print-expand main.content .callout:is([data-callout="video"], [data-callout="video-source"]) > .callout-content { display: none !important; }
+  html body.dg-print-clean main.content .callout:is([data-callout="video"], [data-callout="video-source"]) :is(.callout-title,.callout-title-inner) { display: block !important; padding: 0 !important; }
+  html body.dg-print-clean main.content .callout:is([data-callout="video"], [data-callout="video-source"]) .callout-title-inner::before {
+    content: "VIDEO SOURCE" !important; display: block !important;
+    font-family: var(--font-interface, sans-serif); font-size: 0.7em; font-weight: 600;
+    font-style: normal; letter-spacing: 0.08em; margin-bottom: 0.2em;
+  }
+  html body.dg-print-clean main.content .callout:is([data-callout="video"], [data-callout="video-source"]) .callout-title-inner a {
+    font-family: var(--folio-heading-font, Georgia, serif); font-style: italic;
+    font-weight: 400; text-decoration: none !important;
+  }
+  html body.dg-print-clean main.content .callout:is([data-callout="video"], [data-callout="video-source"]) .callout-title-inner a::after {
+    content: attr(href) !important; display: block; margin-top: 0.2em;
+    font-family: var(--font-interface, sans-serif); font-size: 0.8em; font-style: normal;
+    font-weight: normal; overflow-wrap: anywhere;
+  }
   html body.dg-print-clean.dg-print-expand main.content .callout.is-collapsed > :not(.callout-title) { display: block !important; }
   html body.dg-print-clean main.content a { text-decoration: underline; }
   html body.dg-print-clean.dg-print-link-urls main.content a[data-dg-print-url]::after { content: " (" attr(data-dg-print-url) ")"; font-size: 8pt; overflow-wrap: anywhere; }

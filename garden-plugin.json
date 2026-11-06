@@ -1,7 +1,7 @@
 {
   "id": "clean-print",
   "name": "Clean Print",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Clean printing with live layout preview, study-sheet presets, optional theme styling and page numbering.",
   "author": "Kolten Bendickson",
   "slots": {

@@ -87,6 +87,40 @@
       return result;
     }
 
+    // Inspect only known notebook exports, never ordinary photographs/diagrams.
+    var notebookPolarity = new WeakMap();
+    function prepareNotebookImages() {
+      var darkPaper = luminance(options.themeBackground ? content.style.getPropertyValue("--dg-print-theme-paper") || "white" : "white") < 0.18;
+      content.querySelectorAll('img').forEach(function (image) {
+        var name = (image.getAttribute('src') || '') + ' ' + (image.getAttribute('alt') || '');
+        if (!/-clip-|-page-|\.notebook/i.test(name) && !image.matches('.finenotes-dark-clip,[data-finenotes-theme]')) return;
+        var whiteInk = notebookPolarity.get(image);
+        if (whiteInk === undefined && image.complete && image.naturalWidth) {
+          try {
+            var canvas = document.createElement('canvas'); canvas.width = canvas.height = 48;
+            var ctx = canvas.getContext('2d', {willReadFrequently:true});
+            ctx.drawImage(image, 0, 0, 48, 48);
+            var data = ctx.getImageData(0, 0, 48, 48).data;
+            var transparent = 0, ink = 0, count = 0, edge = 0, edgeCount = 0;
+            for (var i = 0; i < data.length; i += 4) {
+              var value = (data[i] + data[i+1] + data[i+2]) / 765;
+              if (data[i+3] < 240) transparent++;
+              if (data[i+3] > 32) { ink += value; count++; }
+              var x = (i / 4) % 48, y = Math.floor(i / 4 / 48);
+              if ((x === 0 || x === 47 || y === 0 || y === 47) && data[i+3] > 240) { edge += value; edgeCount++; }
+            }
+            whiteInk = transparent > 48 ? ink / Math.max(1,count) > 0.55 : edge / Math.max(1,edgeCount) < 0.45;
+            notebookPolarity.set(image, whiteInk);
+          } catch (_) { /* Cross-origin exports can still use an explicit theme marker. */ }
+        }
+        if (whiteInk === undefined) whiteInk = image.dataset.finenotesTheme !== 'light';
+        image.setAttribute('data-dg-print-invert', String(whiteInk !== darkPaper));
+      });
+    }
+    content.querySelectorAll('img').forEach(function (image) {
+      image.addEventListener('load', function () { prepareNotebookImages(); if (dialog && dialog.open) renderPreview(); });
+    });
+
     function applyOptions() {
       document.body.classList.toggle("dg-print-no-title", !options.includeTitle);
       document.body.classList.toggle("dg-print-with-date", options.includeDate);
@@ -121,6 +155,7 @@
         var color = contrast >= 4.5 ? item.color : ink;
         if (options.themeColors && item.el.style.getPropertyValue("--dg-print-theme-color") !== color) item.el.style.setProperty("--dg-print-theme-color", color);
       });
+      prepareNotebookImages();
       date.textContent = new Date().toLocaleDateString();
       var counter = options.pageNumbers ? '"Page " counter(page) " of " counter(pages)' : "none";
       pageStyle.textContent = '@media print { @page { size: ' + options.paper + ' ' + options.orientation + '; margin: ' + options.margin + 'mm 0; @bottom-center { content: ' + counter + '; font-family: Arial, sans-serif; font-size: 9pt; color: #555; } } }';
@@ -224,11 +259,17 @@
       if (!dialog.open || document.documentElement.classList.contains("dg-note-locked")) return;
       applyOptions();
       var css = "";
+      // A preview is the themed document under print media, not a reset-only copy.
       Array.from(document.styleSheets).forEach(function (sheet) {
-        if (!sheet.href || !sheet.href.split("?")[0].endsWith("clean-print.css")) return;
-        try { Array.from(sheet.cssRules).forEach(function (rule) {
-          if (rule.type === CSSRule.MEDIA_RULE && rule.media.mediaText === "print") css += Array.from(rule.cssRules).map(function (child) { return child.cssText; }).join("\n");
-        }); } catch (_) {}
+        try {
+          var text = Array.from(sheet.cssRules).map(function (rule) { return rule.cssText; }).join("\n");
+          text = text.replace(/@media\s+print\b/g, '@media all').replace(/@media\s+screen\b/g, '@media not all');
+          text = text.replace(/url\((['"]?)([^)'"\s]+)\1\)/g, function (all, quote, url) {
+            if (/^(data:|#)/.test(url)) return all;
+            try { return 'url(' + JSON.stringify(new URL(url, sheet.href || location.href).href) + ')'; } catch (_) { return all; }
+          });
+          css += text + "\n";
+        } catch (_) { /* A cross-origin stylesheet may not expose CSSOM rules. */ }
       });
       var clone = content.cloneNode(true);
       clone.inert = false;
@@ -257,7 +298,8 @@
       var style = doc.createElement("style");
       style.textContent = css + '\nhtml body.dg-print-clean.dg-print-preview main.content:not(.canvas-page){padding-block:var(--dg-print-margin)!important;}html,body{margin:0;}body{min-height:' + previewFrame.dataset.paperHeight + 'px;}';
       doc.head.appendChild(style);
-      doc.body.className = Array.from(document.body.classList).filter(function (name) { return name.indexOf("dg-print-") === 0; }).join(" ") + " dg-print-preview";
+      doc.body.className = Array.from(document.body.classList).join(" ") + " dg-print-preview";
+      doc.body.style.cssText = document.body.style.cssText;
       doc.body.style.setProperty("--dg-print-paper", content.style.getPropertyValue("--dg-print-paper"));
       doc.body.appendChild(doc.importNode(clone, true));
       doc.querySelectorAll("img").forEach(function (image) { image.addEventListener("load", fitPreview, {once:true}); });
@@ -322,6 +364,7 @@
         if (image.decode) resources.push(image.decode());
       });
       await Promise.race([Promise.allSettled(resources), new Promise(function (resolve) { setTimeout(resolve, 3000); })]);
+      prepareNotebookImages();
       window.requestAnimationFrame(function () { window.requestAnimationFrame(function () {
         try { window.print(); } catch (_) { restore(); }
       }); });
