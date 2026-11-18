@@ -220,3 +220,10 @@
 }
 .dg-print-preset { display: flex; align-items: center; justify-content: space-between; margin: 0 0 16px; gap: 12px; font-size: 13px; }
 .dg-print-preset select { max-width: 70%; }
+
+/* Match adaptive artwork to the exported paper, independently of reading mode. */
+@media print {
+  html body.dg-print-clean main.content img:is([src$=".svg" i], [src*=".svg?" i], [src^="data:image/svg+xml"]) {
+    color-scheme: var(--dg-print-color-scheme, light) !important;
+  }
+}

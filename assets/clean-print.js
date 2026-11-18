@@ -136,6 +136,7 @@
       content.style.setProperty("--dg-print-margin", options.margin + "mm");
       var paper = options.themeBackground ? content.style.getPropertyValue("--dg-print-theme-paper") || "white" : "white";
       content.style.setProperty("--dg-print-paper", paper);
+      content.style.setProperty("--dg-print-color-scheme", luminance(paper) < 0.18 ? "dark" : "light");
       document.body.style.setProperty("--dg-print-paper", paper);
       content.style.setProperty("--dg-print-ink", luminance(paper) < 0.18 ? "#f5f5f5" : "#111");
       themeSnapshots.forEach(function (item) {
